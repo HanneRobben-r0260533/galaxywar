@@ -9,6 +9,7 @@ public class Spaceship extends Sprite {
 	private int type;
 	private int attackPower;
 	private int productionTime;
+	private Point2D source, destination;
 	
 	public Spaceship(double width, double height, double maxX, double maxY, Color color, Owner owner) {
 		super(width, height, maxX, maxY, color, owner);

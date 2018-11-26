@@ -20,7 +20,7 @@ public class Sprite {
 	protected double maxY;
 	protected Color color;
 	protected Owner owner;
-	private final static double MARGIN = 25;
+	private final static double MARGIN = 30;
 
 	public Sprite(String path, double width, double height, double maxX, double maxY) {
 		image = new Image(path, width, height, false, false);
@@ -142,6 +142,11 @@ public class Sprite {
 			if(intersectsWithMargin(s)) return true;
 		}
 		return false;
+	}
+	
+	public boolean isInside(Point2D point){
+		return ((point.getX() >= x && point.getX() <= x + width))
+				&& (point.getY() >= y && point.getY() <= y + height);
 	}
 
 	public String toString() {

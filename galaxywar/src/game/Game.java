@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -66,7 +68,7 @@ public class Game extends Application {
 		
 		Sprite planetP2 = new Planet(Math.random() * 100 + 40,WIDTH, HEIGHT, COLORPLAYER2, Owner.PLAYER2, initialShips);
 		planetP2.setPosition(random.nextInt((int) (WIDTH-planetP2.getWidth()-120)) + 60, random.nextInt((int) (HEIGHT-planetP2.getHeight()-120)) +60);
-		while(planetP2.intersects(planetP1)){
+		while(planetP2.intersectsWithMargin(planetP1)){
 			planetP2.setPosition(random.nextInt((int) (WIDTH-planetP2.getWidth()-120)) + 60, random.nextInt((int) (HEIGHT-planetP2.getHeight()-120)) +60);
 		}
 		planets.add(planetP2);
@@ -123,15 +125,6 @@ public class Game extends Application {
 
 		final Sprite spaceship = new Sprite(getRessourcePathByName("images/alien.png"), 62, 36, WIDTH, HEIGHT);
 		spaceship.setPosition(WIDTH / 2 - spaceship.width() / 2, HEIGHT / 2 - spaceship.height() / 2);
-
-		final Collection<Sprite> pinapples = new ArrayList<Sprite>();
-		Sprite pinappleorig = new Sprite(getRessourcePathByName("images/pinapple.png"), 30, 40, WIDTH, HEIGHT);
-		for (int i = 0; i < NBPINAPPLES; i++) {
-			Sprite pinapple = new Sprite(pinappleorig);
-			pinapple.setPosition(WIDTH * Math.random(), HEIGHT * Math.random());
-			changeSpeed(pinapple);
-			pinapples.add(pinapple);
-		}
 		
 		createPlanets();
 		
@@ -144,12 +137,32 @@ public class Game extends Application {
 				//spaceship.setSpeed(0, 0);
 				//spaceship.setPosition(e.getX() - spaceship.width() / 2, e.getY() - spaceship.height() / 2);
 				Point2D clickedPosition = new Point2D(e.getX(), e.getY());
-
+				//System.out.println(clickedPosition);
+				for(Sprite planet: planets){
+					if(planet.isInside(clickedPosition)){
+						Planet pl = (Planet) planet;
+						Spaceship ship = pl.getSpaceships().get(0);
+						ship.setPosition(planet.getX()+planet.getWidth()/2 - 6, planet.getY()-14);
+					}
+				}
+			}
+		};
+		
+		EventHandler<MouseEvent> mouseHandlerReleased = new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e) {
+				Point2D destinationPosition = new Point2D(e.getX(), e.getY());
+				//System.out.println(destinationPosition);
+				for(Sprite planet: planets){
+						Planet pl = (Planet) planet;
+						Spaceship ship = pl.getSpaceships().get(0);
+						ship.setPosition(ship.getX() +10, ship.getY()+10);
+				}
 			}
 		};
 
-		scene.setOnMouseDragged(mouseHandler);
+		//scene.setOnMouseDragged(mouseHandler);
 		scene.setOnMousePressed(mouseHandler);
+		scene.setOnMouseReleased(mouseHandlerReleased);
 
 		MediaPlayer mediaPlayer = null;
 		try {
@@ -179,6 +192,25 @@ public class Game extends Application {
 				}
 			}
 		});
+		
+		//add a spaceship to every non-neutral planet every 3 seconds
+		Timer timer = new Timer();
+		TimerTask task = new TimerTask()
+		{
+		        public void run()
+		        {
+		            for(Sprite p: planets){
+		            	
+		            	Planet pl = (Planet) p;
+		            	if(pl.getOwner() != Owner.NEUTRAL){
+		            		if(pl.countSpaceships() < pl.getMaxShips()){
+		            			pl.addSpaceship();
+		            		}
+		            	}
+		            }
+		        }
+		};
+		timer.schedule(task,3000,3000);
 
 		new AnimationTimer() {
 			public void handle(long arg0) {
@@ -207,33 +239,20 @@ public class Game extends Application {
 				}
 				 */
 				
-				//spaceship.render(gc);
-				
+				//render planets
 				for(Sprite planet: planets){
 					planet.render(gcPlanets);
 				}
 				
-				
+				//render spaceships
 				for(Sprite planet: planets){
 					if(planet.getOwner() != Owner.NEUTRAL){
-						for(int i=0; i<1; i++){
-							Sprite ship = new Spaceship(12, 12, WIDTH, HEIGHT, planet.getColor(), planet.getOwner());
-							ship.setPosition(planet.getX()+planet.getWidth()/2 - 6, planet.getY()-18);
+						Planet pl = (Planet) planet;
+						for(Sprite ship: pl.getSpaceships()){
 							ship.render(gcPlanets);
-							
-							Sprite ship2 = new Spaceship(12, 12, WIDTH, HEIGHT, planet.getColor(), planet.getOwner());
-							ship.setPosition(planet.getX()+planet.getWidth() + 6, planet.getY()+planet.getHeight()/2-6);
-							ship.render(gcPlanets);
-							
-							/*
-							Sprite ship3 = new Spaceship(12, 12, WIDTH, HEIGHT, planet.color, planet.owner);
-							ship.setPosition(planet.getX()+planet.getWidth()- 6 , planet.getY()+6);
-							ship.render(gcPlanets);
-							*/
-						}
+						}						
 					}
-				}
-			
+				}			
 				
 			}
 				
